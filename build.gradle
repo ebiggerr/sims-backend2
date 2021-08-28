@@ -1,0 +1,48 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.0'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'java'
+}
+
+group = 'com.ebiggerr'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+
+    compile.exclude module: 'spring-boot-starter-tomcat' //excluding the use of Tomcat server
+}
+
+dependencies {
+
+    compile("org.springframework.boot:spring-boot-starter-web")     // web application dependency
+    compile("org.springframework.boot:spring-boot-starter-undertow")    // for Undertow server
+    //compile group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'    //io.jsonwebtoken/jjwt
+
+    //compile 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.boot:spring-boot-starter-security'
+    compile 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation 'com.auth0:java-jwt:3.13.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.5.2'
+    //runtimeOnly 'com.h2database:h2'
+    //runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly 'org.postgresql:postgresql'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+}
+
+test {
+    useJUnitPlatform()
+}
