@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @MappedSuperclass
-public class baseEntity {
+public class BaseEntity {
 
     @Id
     @GeneratedValue(generator = "UUID")
