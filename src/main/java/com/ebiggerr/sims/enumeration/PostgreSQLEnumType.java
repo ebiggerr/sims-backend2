@@ -20,17 +20,32 @@
  * SOFTWARE.
  */
 
-package com.ebiggerr.sims;
+package com.ebiggerr.sims.enumeration;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 
-@SpringBootApplication
-@EnableTransactionManagement
-public class SimsApplication {
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 
-    public static void main(String[] args) {
-        SpringApplication.run(SimsApplication.class,args);
+public class PostgreSQLEnumType extends org.hibernate.type.EnumType {
+
+    public void nullSafeSet(
+            PreparedStatement st,
+            Object value,
+            int index,
+            SharedSessionContractImplementor session)
+            throws HibernateException, SQLException {
+        if(value == null) {
+            st.setNull( index, Types.OTHER );
+        }
+        else {
+            st.setObject(
+                    index,
+                    value.toString(),
+                    Types.OTHER
+            );
+        }
     }
 }

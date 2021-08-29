@@ -20,17 +20,10 @@
  * SOFTWARE.
  */
 
-package com.ebiggerr.sims;
+package com.ebiggerr.sims.enumeration;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-@SpringBootApplication
-@EnableTransactionManagement
-public class SimsApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(SimsApplication.class,args);
-    }
+public enum AccountStatus {
+    PENDING,
+    APPROVED,
+    REVOKED
 }
