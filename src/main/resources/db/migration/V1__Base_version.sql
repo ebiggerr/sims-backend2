@@ -1,6 +1,6 @@
 CREATE TYPE accountstatus AS enum ('APPROVED', 'PENDING', 'REVOKED');
 
-CREATE TABLE public.account (
+CREATE TABLE IF NOT EXISTS public.account (
     id uuid NOT NULL,
     username character varying(64),
     password character(60),
@@ -14,7 +14,7 @@ CREATE TABLE public.account (
     remarks text
 );
 
-CREATE TABLE public."accountRole" (
+CREATE TABLE IF NOT EXISTS public."accountRole" (
     "accountId" uuid NOT NULL,
     "roleId" character varying(32) NOT NULL,
     "creationTime" timestamp without time zone,
@@ -23,7 +23,7 @@ CREATE TABLE public."accountRole" (
     username character varying(64)
 );
 
-CREATE TABLE public."roleDetails" (
+CREATE TABLE IF NOT EXISTS public."roleDetails" (
     "roleId" character varying(32) NOT NULL,
     "roleName" character varying(64),
     "roleDescription" text,
@@ -36,7 +36,7 @@ CREATE TABLE public."roleDetails" (
 -- Name: account account_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.account
+ALTER TABLE IF EXISTS ONLY public.account
     ADD CONSTRAINT account_pk PRIMARY KEY (id);
 
 
@@ -44,14 +44,14 @@ ALTER TABLE ONLY public.account
 -- Name: accountRole accountrole_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."accountRole"
+ALTER TABLE IF EXISTS ONLY public."accountRole"
     ADD CONSTRAINT accountrole_pk PRIMARY KEY ("accountId", "roleId");
 
 --
 -- Name: roleDetails roledetails_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."roleDetails"
+ALTER TABLE IF EXISTS ONLY public."roleDetails"
     ADD CONSTRAINT roledetails_pk PRIMARY KEY ("roleId");
 
 --
@@ -65,7 +65,7 @@ CREATE UNIQUE INDEX roledetails_roleid_uindex ON public."roleDetails" USING btre
 -- Name: accountRole accountrole_accountId_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."accountRole"
+ALTER TABLE IF EXISTS ONLY public."accountRole"
     ADD CONSTRAINT "accountrole_accountId_fk" FOREIGN KEY ("accountId") REFERENCES public.account(id);
 
 
@@ -73,5 +73,5 @@ ALTER TABLE ONLY public."accountRole"
 -- Name: accountRole accountrole_roleId_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."accountRole"
+ALTER TABLE IF EXISTS ONLY public."accountRole"
     ADD CONSTRAINT "accountrole_roleId_fk" FOREIGN KEY ("roleId") REFERENCES public."roleDetails"("roleId") ON UPDATE CASCADE;
