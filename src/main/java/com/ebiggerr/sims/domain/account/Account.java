@@ -3,16 +3,17 @@ package com.ebiggerr.sims.domain.account;
 import com.ebiggerr.sims.domain.BaseEntity;
 import com.ebiggerr.sims.enumeration.AccountStatus;
 import com.ebiggerr.sims.enumeration.PostgreSQLEnumType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @TypeDef(
@@ -22,13 +23,9 @@ import java.util.Set;
 @Table(name="account")
 public class Account extends BaseEntity implements UserDetails {
 
-    @NotEmpty
-    @Column(length = 64)
     private String username;
 
-    @NotEmpty
-    @Column(length=60) // char(60) in postgres for the BCrypt hashing
-    @Size(min = 60)
+    @JsonIgnore
     private String password;
 
     @Column(length = 128)
@@ -48,12 +45,23 @@ public class Account extends BaseEntity implements UserDetails {
     private AccountStatus accountStatus;
 
     @OneToMany(fetch=FetchType.EAGER)
-    @JoinColumn(name= "accountId", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "accountId", nullable = false, insertable = false, updatable = false)
     private Set<AccountRole> accountRoleSet;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+
+        List<SimpleGrantedAuthority> authorities=new ArrayList<>();
+
+        RoleDetails roleDetailsTemp;
+
+        for ( AccountRole accRole: this.accountRoleSet ) {
+            roleDetailsTemp = accRole.getRoleDetails();
+            String roleName = roleDetailsTemp.getRoleName();
+            authorities.add( new SimpleGrantedAuthority(roleName));
+        }
+
+        return authorities;
     }
 
     @Override
