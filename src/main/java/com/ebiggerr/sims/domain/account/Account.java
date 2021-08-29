@@ -51,14 +51,15 @@ public class Account extends BaseEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
+        // Initialize
         List<SimpleGrantedAuthority> authorities=new ArrayList<>();
-
         RoleDetails roleDetailsTemp;
+        String roleName;
 
         for ( AccountRole accRole: this.accountRoleSet ) {
             roleDetailsTemp = accRole.getRoleDetails();
-            String roleName = roleDetailsTemp.getRoleName();
-            authorities.add( new SimpleGrantedAuthority(roleName));
+            roleName = roleDetailsTemp.getRoleName();
+            authorities.add( new SimpleGrantedAuthority(roleName) );
         }
 
         return authorities;
