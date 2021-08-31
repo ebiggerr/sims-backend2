@@ -53,7 +53,7 @@ public class WebSecurity_Config extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.parentAuthenticationManager(authenticationManagerBean());
+        auth.parentAuthenticationManager(null);
         auth.userDetailsService(accountService).passwordEncoder( encoder() );
     }
 
