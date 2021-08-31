@@ -96,4 +96,14 @@ public class API_RESPONSE implements Serializable {
 
         return response;
     }
+
+    public API_RESPONSE NotFound(String exceptionMessage) {
+
+        API_RESPONSE response=new API_RESPONSE();
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage(exceptionMessage);
+        response.setData(null);
+
+        return response;
+    }
 }
