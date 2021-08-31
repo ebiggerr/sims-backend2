@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 public class API_RESPONSE implements Serializable {
 
-    private int HttpCode;
+    private int status;
     private String message;
     private Object data;
 
@@ -22,12 +22,12 @@ public class API_RESPONSE implements Serializable {
     public API_RESPONSE(){
     }
 
-    public int getHttpCode(){
-        return HttpCode;
+    public int getStatus(){
+        return status;
     }
 
-    public void setHttpCode(int code){
-        this.HttpCode = code;
+    public void setStatus(int code){
+        this.status = code;
     }
 
     public String getMessage() {
@@ -49,7 +49,7 @@ public class API_RESPONSE implements Serializable {
     public API_RESPONSE Success(Object data){
 
         API_RESPONSE response=new API_RESPONSE();
-        response.setHttpCode(HttpStatus.OK.value());
+        response.setStatus(HttpStatus.OK.value());
         response.setMessage(SUCCESS_MSG);
         response.setData(data);
 
@@ -59,7 +59,7 @@ public class API_RESPONSE implements Serializable {
     public API_RESPONSE Success(TokenDto token){
 
         API_RESPONSE response=new API_RESPONSE();
-        response.setHttpCode(HttpStatus.OK.value());
+        response.setStatus(HttpStatus.OK.value());
         response.setMessage(SUCCESS_MSG);
         response.setData(token);
 
@@ -69,7 +69,7 @@ public class API_RESPONSE implements Serializable {
     public API_RESPONSE Success(){
 
         API_RESPONSE response=new API_RESPONSE();
-        response.setHttpCode(HttpStatus.OK.value());
+        response.setStatus(HttpStatus.OK.value());
         response.setMessage(SUCCESS_OP_MSG);
         response.setData(null);
 
@@ -79,7 +79,7 @@ public class API_RESPONSE implements Serializable {
     public API_RESPONSE Unauthorized(){
 
         API_RESPONSE response=new API_RESPONSE();
-        response.setHttpCode(HttpStatus.UNAUTHORIZED.value());
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setMessage(UNAUTHORIZED_MSG);
         response.setData(null);
 
@@ -90,7 +90,7 @@ public class API_RESPONSE implements Serializable {
     public API_RESPONSE Error(){
 
         API_RESPONSE response=new API_RESPONSE();
-        response.setHttpCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         response.setMessage(ERROR);
         response.setData(null);
 

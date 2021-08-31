@@ -44,13 +44,10 @@ public class AccountController {
     @PostMapping(path = "/authenticate")
     public API_RESPONSE getToken(@RequestBody UserName_Password_Input input) {
 
-        Account acc = null;
         Authentication auth = null;
 
         try {
-            //check if there is any record with matching username in the database
-            //acc = (Account) _accountService.loadUserByUsername(input.getUsername());
-
+            
             auth = _authenticationManager.authenticate(new UsernamePasswordAuthenticationToken( input.getUsername(), input.getPassword() ));
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -69,6 +66,7 @@ public class AccountController {
                 return new API_RESPONSE().Unauthorized();
             }
             else{
+                logger.error( "Something went wrong when doing authentication. " + e.getMessage() );
                 return new API_RESPONSE().Error();
             }
         }

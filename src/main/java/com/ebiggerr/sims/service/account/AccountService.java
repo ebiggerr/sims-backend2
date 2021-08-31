@@ -18,13 +18,20 @@ public class AccountService implements UserDetailsService {
         _accountRepo = accountRepo;
     }
 
+    /**
+     * Method overridden from UserDetails class to load an user/account entity by searching it inside database.
+     *
+     * @param username username of an account
+     * @return UserDetails that can be casted to Account entity because Account implements the class
+     * @throws UsernameNotFoundException when the username is not found in the database
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         Optional<Account> acc1 = _accountRepo.retrieveOneUsingUsername( username );
 
         if( acc1.isPresent() ){
-            return (Account)acc1.get(); //casting it
+            return (Account)acc1.get();
         }
         else throw new UsernameNotFoundException("No user found");
     }
