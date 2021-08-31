@@ -8,7 +8,7 @@ public class accountIdRoleId implements Serializable {
 
     private UUID accountId;
 
-    private UUID roleId;
+    private String roleId;
 
     @Override
     public boolean equals(Object o) {

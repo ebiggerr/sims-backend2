@@ -1,27 +1,33 @@
 package com.ebiggerr.sims.domain.account;
 
-import com.ebiggerr.sims.domain.BaseEntity;
-
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="roleDetails")
-public class RoleDetails extends BaseEntity {
+@Table(name="\"roleDetails\"")
+public class RoleDetails{
 
-    private String roleId;
+    @Id
+    @Column(name="id")
+    private String id;
 
+    @Column(name ="\"roleName\"")
     private String roleName;
 
+    @Column(name ="\"roleDescription\"")
     private String roleDescription;
 
+    @Column(name ="\"creationTime\"")
     private LocalDateTime creationTime;
 
+    @Column(name ="\"lastModificationTime\"")
     private LocalDateTime lastModificationTime;
 
     public String getRoleId() {
-        return roleId;
+        return id;
     }
 
     public String getRoleName() {
@@ -36,7 +42,7 @@ public class RoleDetails extends BaseEntity {
 
         this.roleName = roleDetailsInput.roleName;
         this.roleDescription = roleDetailsInput.roleDescription;
-        this.lastModificationTime = roleDetailsInput.lastModificationTime;
+        this.lastModificationTime = LocalDateTime.now();
 
     }
 }

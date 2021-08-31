@@ -1,5 +1,6 @@
 package com.ebiggerr.sims.domain.account;
 
+import com.ebiggerr.sims.DTO.Account.AccountUpdateInput;
 import com.ebiggerr.sims.domain.BaseEntity;
 import com.ebiggerr.sims.enumeration.AccountStatus;
 import com.ebiggerr.sims.enumeration.PostgreSQLEnumType;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -28,25 +30,51 @@ public class Account extends BaseEntity implements UserDetails {
     @JsonIgnore
     private String password;
 
-    @Column(length = 128)
+    @Column(length = 128, name ="\"emailAddress\"")
     private String emailAddress;
 
-    @Column(length = 64)
+    @Column(length = 64, name ="\"firstName\"")
     private String firstName;
 
-    @Column(length = 64)
+    @Column(length = 64, name ="\"lastName\"")
     private String lastName;
 
     private String remarks;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "accountstatus")
+    @Column(name = "\"accountStatus\"")
     @Type( type = "pgsql_enum" )
     private AccountStatus accountStatus;
 
-    @OneToMany(fetch=FetchType.EAGER)
-    @JoinColumn(name = "accountId", nullable = false, insertable = false, updatable = false)
-    private Set<AccountRole> accountRoleSet;
+    @OneToMany(fetch=FetchType.LAZY, mappedBy = "account")
+    private List<AccountRole> accountRoleSet;
+
+    public Account(){
+
+    }
+
+    public Account(UUID id,
+                   boolean isDeleted,
+                   LocalDateTime creationTime,
+                   LocalDateTime lastModificationTime,
+                   String username,
+                   String password,
+                   String emailAddress,
+                   String firstName,
+                   String lastName,
+                   String remarks,
+                   AccountStatus accountStatus,
+                   List<AccountRole> accountRoleSet) {
+        super(id, isDeleted, creationTime, lastModificationTime);
+        this.username = username;
+        this.password = password;
+        this.emailAddress = emailAddress;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.remarks = remarks;
+        this.accountStatus = accountStatus;
+        this.accountRoleSet = accountRoleSet;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -93,6 +121,12 @@ public class Account extends BaseEntity implements UserDetails {
 
     public AccountStatus getAccountStatus(){
         return this.accountStatus;
+    }
+
+    public Account updateEntity(AccountUpdateInput accountUpdateInput){
+
+
+        return new Account(); // TODO update
     }
 
     @Override

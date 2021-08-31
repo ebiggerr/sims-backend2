@@ -20,11 +20,25 @@ public class BaseEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    @Column(name="\"isDeleted\"")
     protected boolean isDeleted;
 
+    @Column(name ="\"creationTime\"")
     private LocalDateTime creationTime;
 
+    @Column(name ="\"lastModificationTime\"")
     private LocalDateTime lastModificationTime;
+
+    public BaseEntity(){
+
+    }
+
+    public BaseEntity(UUID id, boolean isDeleted, LocalDateTime creationTime, LocalDateTime lastModificationTime) {
+        this.id = id;
+        this.isDeleted = isDeleted;
+        this.creationTime = creationTime;
+        this.lastModificationTime = lastModificationTime;
+    }
 
     public boolean isDeleted(){
         return this.isDeleted;
@@ -42,7 +56,7 @@ public class BaseEntity {
         this.isDeleted = true;
     }
 
-    public UUID getId(){
-        return this.id;
+    public String getId(){
+        return this.id.toString();
     }
 }
