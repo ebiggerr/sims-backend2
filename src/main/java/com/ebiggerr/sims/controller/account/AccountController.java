@@ -58,7 +58,7 @@ public class AccountController {
             if( auth.isAuthenticated() ){
 
                 String token = Token_Provider.generateTokenFromAuthentication(auth);
-                TokenDto tokenDto = new TokenDto(token);
+                TokenDto tokenDto = TokenDto.CreateTokenDto(token);
 
                 return new API_RESPONSE().Success(tokenDto);
             }
