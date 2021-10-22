@@ -6,15 +6,23 @@ public class TokenDto implements Serializable {
 
     private String token;
 
-    public TokenDto(String token){
+    private TokenDto(){
+
+    }
+
+    private TokenDto(String token){
         this.token = token;
     }
 
-    public String getToken() {
+    public static TokenDto CreateTokenDto(String token){
+        return new TokenDto(token);
+    }
+
+    public String getTokenString() {
         return token;
     }
 
-    public void setToken(String token) {
+    public void setTokenString(String token) {
         this.token = token;
     }
 }
