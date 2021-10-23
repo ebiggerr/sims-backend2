@@ -1,20 +1,22 @@
 package com.ebiggerr.sims.DTO.Account;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 public class AccountOutput implements Serializable {
 
-    private String id;
+    private UUID id;
     private String username;
     private String firstName;
     private String lastName;
     private String emailAddress;
+    private String Roles;
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

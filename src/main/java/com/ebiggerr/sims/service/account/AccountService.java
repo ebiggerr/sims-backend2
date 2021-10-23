@@ -1,5 +1,6 @@
 package com.ebiggerr.sims.service.account;
 
+import com.ebiggerr.sims.DTO.Account.CreateAccountInput;
 import com.ebiggerr.sims.domain.account.Account;
 import com.ebiggerr.sims.repository.account.AccountRepo;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,5 +35,18 @@ public class AccountService implements UserDetailsService {
             return (Account)acc1.get();
         }
         else throw new UsernameNotFoundException("No user found");
+    }
+
+    public boolean registerAnAccount(CreateAccountInput input) {
+
+        try {
+            Account acc = Account.Create(input);
+
+            _accountRepo.save(acc);
+
+        }catch (Exception e){
+            return false;
+        }
+        return true;
     }
 }

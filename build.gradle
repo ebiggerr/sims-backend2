@@ -37,6 +37,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-validation'
 
     compile "org.flywaydb:flyway-core"
+    compile 'com.intellij:annotations:+@jar'
 
     implementation 'org.mapstruct:mapstruct:1.4.2.Final'
 

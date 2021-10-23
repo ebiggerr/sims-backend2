@@ -2,6 +2,8 @@ package com.ebiggerr.sims.controller.account;
 
 import com.ebiggerr.sims.DTO.API_RESPONSE;
 import com.ebiggerr.sims.DTO.Account.AccountOutput;
+import com.ebiggerr.sims.DTO.Account.CreateAccountInput;
+import com.ebiggerr.sims.DTO.Account.GetAccountInput;
 import com.ebiggerr.sims.DTO.Account.UserName_Password_Input;
 import com.ebiggerr.sims.DTO.token.TokenDto;
 import com.ebiggerr.sims.config.jwt.Token_Provider;
@@ -79,7 +81,7 @@ public class AccountController {
 
 
     @GetMapping(path = "/user" )
-    public API_RESPONSE getAUserUsingUsername(@RequestBody UserName_Password_Input input){
+    public API_RESPONSE getAUserUsingUsername(@RequestBody GetAccountInput input){
 
         try {
             Account acc = (Account) _accountService.loadUserByUsername(input.getUsername());
@@ -90,5 +92,22 @@ public class AccountController {
         }catch (UsernameNotFoundException exception){
             return new API_RESPONSE().NotFound(exception.getMessage());
         }
+    }
+
+    @PostMapping(path = "/register")
+    public API_RESPONSE registerAnAccount(@RequestBody CreateAccountInput input){
+
+        boolean success = false;
+
+        try{
+            success = _accountService.registerAnAccount(input);
+
+            if(!success) return new API_RESPONSE().Error();
+
+        }catch (Exception e){
+            return new API_RESPONSE().Error();
+        }
+
+        return new API_RESPONSE().Success();
     }
 }

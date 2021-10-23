@@ -1,20 +1,20 @@
 package com.ebiggerr.sims.domain.account;
 
 import com.ebiggerr.sims.DTO.Account.AccountUpdateInput;
+import com.ebiggerr.sims.DTO.Account.CreateAccountInput;
 import com.ebiggerr.sims.domain.BaseEntity;
 import com.ebiggerr.sims.enumeration.AccountStatus;
 import com.ebiggerr.sims.enumeration.PostgreSQLEnumType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -24,6 +24,8 @@ import java.util.*;
 )
 @Table(name="account")
 public class Account extends BaseEntity implements UserDetails {
+
+    protected static BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private String username;
 
@@ -49,14 +51,14 @@ public class Account extends BaseEntity implements UserDetails {
     @OneToMany(fetch=FetchType.LAZY, mappedBy = "account")
     private List<AccountRole> accountRoleSet;
 
-    public Account(){
+    protected Account(){
 
     }
 
-    public Account(UUID id,
+    private Account(/*UUID id,
                    boolean isDeleted,
                    LocalDateTime creationTime,
-                   LocalDateTime lastModificationTime,
+                   LocalDateTime lastModificationTime,*/
                    String username,
                    String password,
                    String emailAddress,
@@ -65,9 +67,10 @@ public class Account extends BaseEntity implements UserDetails {
                    String remarks,
                    AccountStatus accountStatus,
                    List<AccountRole> accountRoleSet) {
-        super(id, isDeleted, creationTime, lastModificationTime);
+        //super(id, isDeleted, creationTime, lastModificationTime);
+        super();
         this.username = username;
-        this.password = password;
+        this.password = passwordEncoder.encode(password);
         this.emailAddress = emailAddress;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -121,6 +124,21 @@ public class Account extends BaseEntity implements UserDetails {
 
     public AccountStatus getAccountStatus(){
         return this.accountStatus;
+    }
+
+    public static Account Create(@NotNull CreateAccountInput input){
+
+        return new Account(
+                input.username,
+                input.password,
+                input.emailAddress,
+                input.firstName,
+                input.lastName,
+                "N/A", //remarks
+                AccountStatus.PENDING,
+                new LinkedList<>() // empty list
+
+        );
     }
 
     public Account updateEntity(AccountUpdateInput accountUpdateInput){

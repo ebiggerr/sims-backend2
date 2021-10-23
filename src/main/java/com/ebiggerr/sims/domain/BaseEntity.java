@@ -29,11 +29,11 @@ public class BaseEntity {
     @Column(name ="\"lastModificationTime\"")
     private LocalDateTime lastModificationTime;
 
-    public BaseEntity(){
-
+    protected BaseEntity(){
+        this.creationTime = LocalDateTime.now();
     }
 
-    public BaseEntity(UUID id, boolean isDeleted, LocalDateTime creationTime, LocalDateTime lastModificationTime) {
+    private BaseEntity(UUID id, boolean isDeleted, LocalDateTime creationTime, LocalDateTime lastModificationTime) {
         this.id = id;
         this.isDeleted = isDeleted;
         this.creationTime = creationTime;
@@ -56,7 +56,10 @@ public class BaseEntity {
         this.isDeleted = true;
     }
 
-    public String getId(){
-        return this.id.toString();
+    public UUID getId(){
+        return this.id;
     }
+
+    public String getIdInString(){ return this.id.toString(); }
+
 }
