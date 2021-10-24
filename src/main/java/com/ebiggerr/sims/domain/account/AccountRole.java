@@ -35,7 +35,20 @@ public class AccountRole implements Serializable {
     @Column(name ="\"isDeleted\"")
     private boolean isDeleted;
 
+    // Who grant this account with the roles
     private String username;
+
+    protected AccountRole(){
+
+    }
+
+    private AccountRole(UUID accountId, String roleId, String username){
+        this.accountId = accountId;
+        this.roleId = roleId;
+        this.creationTime = LocalDateTime.now();
+        this.username = username;
+
+    }
 
     public LocalDateTime getCreationTime() {
         return creationTime;
@@ -51,5 +64,13 @@ public class AccountRole implements Serializable {
 
     public RoleDetails getRoleDetails() {
         return roleDetails;
+    }
+
+    public static AccountRole assigningRolesToAnAccount(Account acc, RoleDetails roleDetails, String username){
+
+        return new AccountRole(acc.getId(),
+                roleDetails.getRoleId(),
+                username);
+
     }
 }

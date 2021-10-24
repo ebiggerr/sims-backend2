@@ -1,10 +1,13 @@
 package com.ebiggerr.sims.domain.account;
 
+import com.ebiggerr.sims.DTO.Roles.UpdateRolesInput;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name="\"roleDetails\"")
@@ -44,5 +47,9 @@ public class RoleDetails{
         this.roleDescription = roleDetailsInput.roleDescription;
         this.lastModificationTime = LocalDateTime.now();
 
+    }
+
+    public static String[] getRolesFromCommasSeparatedString(UpdateRolesInput input){
+        return input.roles.split(",");
     }
 }

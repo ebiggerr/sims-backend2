@@ -5,6 +5,8 @@ import com.ebiggerr.sims.DTO.Account.AccountOutput;
 import com.ebiggerr.sims.DTO.Account.CreateAccountInput;
 import com.ebiggerr.sims.DTO.Account.GetAccountInput;
 import com.ebiggerr.sims.DTO.Account.UserName_Password_Input;
+import com.ebiggerr.sims.DTO.Result;
+import com.ebiggerr.sims.DTO.Roles.UpdateRolesInput;
 import com.ebiggerr.sims.DTO.token.TokenDto;
 import com.ebiggerr.sims.config.jwt.Token_Provider;
 import com.ebiggerr.sims.domain.account.Account;
@@ -20,10 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AccountController {
@@ -94,6 +93,12 @@ public class AccountController {
         }
     }
 
+    /**
+     * Endpoint for account registration
+     *
+     * @param input DTO for registration
+     * @return API response that tells the user of the result of the registration
+     */
     @PostMapping(path = "/register")
     public API_RESPONSE registerAnAccount(@RequestBody CreateAccountInput input){
 
@@ -109,5 +114,58 @@ public class AccountController {
         }
 
         return new API_RESPONSE().Success();
+    }
+
+    /**
+     * Endpoint for user with administrative privileges to assign roles to an account
+     *
+     *
+     *
+     * @param token For the purpose of username extraction, the username in the token
+     *              would be used to log in the database that who grant the roles to the
+     *              target account
+     * @param input DTO, containing the username of the target account and the roles string
+     *              ( commas separated, for example : "Inventory Manager,Staff" ) - Containing two
+     *              roles in this example
+     * @return API response that tells the user of the result of the registration
+     */
+    @PostMapping(path = "/roles")
+    public API_RESPONSE assigningRolesToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
+
+        // username of account that made the POST request
+        String username = null;
+
+        boolean success = false;
+
+        try{
+            username = Token_Provider.getUsernameFromToken(token);
+        }catch (CustomException e){
+            return new API_RESPONSE().Error();
+        }
+
+        if(username != null){
+
+            // target account that will have roles assigned to
+            try {
+                Account acc = (Account) _accountService.loadUserByUsername(input.username);
+
+                Result result = _accountService.assigningRolesToAnAccount(acc, input, username);
+
+            }catch (UsernameNotFoundException e){
+                return new API_RESPONSE().NotFound(e.getMessage());
+            }
+
+            // Get the roles of input DTO by calling the Role Service
+
+            // Assume that the roles input from DTO will be more than one
+
+            // Get back a list of role
+
+            // Loop the list to create a list of RoleDetails and then save them into database
+
+            if(success) return new API_RESPONSE().Success();
+        }
+
+        return new API_RESPONSE().Error();
     }
 }
