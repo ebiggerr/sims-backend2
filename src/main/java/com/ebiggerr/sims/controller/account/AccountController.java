@@ -134,7 +134,7 @@ public class AccountController {
 
         // username of account that made the POST request
         String username = null;
-
+        Result result = null;
         boolean success = false;
 
         try{
@@ -149,7 +149,7 @@ public class AccountController {
             try {
                 Account acc = (Account) _accountService.loadUserByUsername(input.username);
 
-                Result result = _accountService.assigningRolesToAnAccount(acc, input, username);
+                result = _accountService.assigningRolesToAnAccount(acc, input, username);
 
             }catch (UsernameNotFoundException e){
                 return new API_RESPONSE().NotFound(e.getMessage());
@@ -163,7 +163,12 @@ public class AccountController {
 
             // Loop the list to create a list of RoleDetails and then save them into database
 
-            if(success) return new API_RESPONSE().Success();
+            if(result.status){
+                return new API_RESPONSE().Success("Roles have assigned to account with username of :" + input.username);
+            }
+            else{
+                return new API_RESPONSE().Failed(result.message);
+            }
         }
 
         return new API_RESPONSE().Error();

@@ -2,6 +2,7 @@ package com.ebiggerr.sims.domain.account;
 
 import com.ebiggerr.sims.DTO.Roles.UpdateRolesInput;
 
+import javax.management.relation.Role;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -39,6 +40,10 @@ public class RoleDetails{
 
     public String getRoleDescription() {
         return roleDescription;
+    }
+
+    protected RoleDetails(){
+
     }
 
     public void updateRoleDetails(RoleDetails roleDetailsInput){

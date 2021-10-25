@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-//@IdClass(accountIdRoleId.class)
+@IdClass(accountIdRoleId.class)
 @Table(name ="\"accountRole\"")
 public class AccountRole implements Serializable {
 

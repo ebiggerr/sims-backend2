@@ -106,4 +106,14 @@ public class API_RESPONSE implements Serializable {
 
         return response;
     }
+
+    public API_RESPONSE Failed(String message){
+
+        API_RESPONSE response=new API_RESPONSE();
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setMessage(message);
+        response.setData(null);
+
+        return response;
+    }
 }

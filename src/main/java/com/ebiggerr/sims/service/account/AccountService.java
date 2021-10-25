@@ -67,39 +67,54 @@ public class AccountService implements UserDetailsService {
 
     public Result assigningRolesToAnAccount(Account acc, UpdateRolesInput input, String username) throws RunTimeCustomException {
 
+        Result result = new Result();
+        String invalidRoles  = "";
+
         String[] roles = RoleDetails.getRolesFromCommasSeparatedString(input);
         List<AccountRole> list = new LinkedList<>();
         String[] invalid = new String[roles.length];
         AtomicInteger index = new AtomicInteger(0);
 
         for (String role : roles) {
+            // in case user input is in upper case. For example: "ADMIN"
+            // capitalize -> "Admin"
+            role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
             Optional<RoleDetails> roleDetails = _roleDetailsRepo.getByRoleNameIs(role);
 
+            //final for the lambda expression later
+            String finalRole = role;
             roleDetails.ifPresentOrElse((details) -> {
                         list.add(AccountRole.assigningRolesToAnAccount(acc, details, username));
                     }
                     ,
                     () -> {
-                        invalid[index.get()] = role;
+                        invalid[index.get()] = finalRole;
                         index.getAndIncrement();
                     }
             );
 
         }
 
-        if ((roles.length > list.size()) && (list.size() > 0)) {
+        if ((roles.length > list.size()) && (list.size() >= 0)) {
 
-            // return something meaningful
+            for( int i=0; i < roles.length; i++ ){
+                invalidRoles =  invalid[i]  + " ";
+            }
+            result.message = "Some invalid roles that is not in the system cannot be assigned. : " + invalidRoles;
+            result.status = false;
+            result.arr = invalid;
 
-            throw new RunTimeCustomException("There is some invalid roles that could not be assigned to the account.");
+            return result;
+            //throw new RunTimeCustomException("There is some invalid roles that could not be assigned to the account.");
         }
 
-        if (list.size() > 0) {
+        if (list.size() > 0 && roles.length == list.size() ) {
             _accountRoleRepo.saveAll(list);
-            return null;
+            result.status = true;
+            result.message = "Success";
         }
 
-        return null;
+        return result;
     }
 
 }

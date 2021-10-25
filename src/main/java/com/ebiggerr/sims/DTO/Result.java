@@ -8,6 +8,10 @@ public class Result {
 
     public String message;
 
+    public Result(){
+
+    }
+
     public Result(boolean status, String[] arr, String message) {
         this.status = status;
         this.arr = arr;
