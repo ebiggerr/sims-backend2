@@ -47,6 +47,8 @@ public class AccountRole implements Serializable {
         this.roleId = roleId;
         this.creationTime = LocalDateTime.now();
         this.username = username;
+        //Default
+        this.isDeleted = false;
 
     }
 
@@ -66,11 +68,27 @@ public class AccountRole implements Serializable {
         return roleDetails;
     }
 
+    public String getRoleId(){
+        return roleId;
+    }
+
+    public UUID getAccountId(){
+        return accountId;
+    }
+
+    public String getAccountIdInString(){
+        return accountId.toString();
+    }
+
     public static AccountRole assigningRolesToAnAccount(Account acc, RoleDetails roleDetails, String username){
 
         return new AccountRole(acc.getId(),
                 roleDetails.getRoleId(),
                 username);
 
+    }
+
+    public void SoftDelete(){
+        this.isDeleted = true;
     }
 }

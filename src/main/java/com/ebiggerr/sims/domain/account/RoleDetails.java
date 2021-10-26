@@ -30,6 +30,9 @@ public class RoleDetails{
     @Column(name ="\"lastModificationTime\"")
     private LocalDateTime lastModificationTime;
 
+    @Column(name ="\"isDeleted\"")
+    private boolean isDeleted;
+
     public String getRoleId() {
         return id;
     }
@@ -43,7 +46,8 @@ public class RoleDetails{
     }
 
     protected RoleDetails(){
-
+        this.creationTime = LocalDateTime.now();
+        this.isDeleted = false;
     }
 
     public void updateRoleDetails(RoleDetails roleDetailsInput){
