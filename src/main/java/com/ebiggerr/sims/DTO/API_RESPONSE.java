@@ -4,10 +4,13 @@ import com.ebiggerr.sims.DTO.token.TokenDto;
 import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 public class API_RESPONSE implements Serializable {
 
     private int status;
+    private Timestamp timestamp;
     private String message;
     private Object data;
 
@@ -20,6 +23,7 @@ public class API_RESPONSE implements Serializable {
     private final String ERROR="Something is wrong";
 
     public API_RESPONSE(){
+        timestamp = Timestamp.from(Instant.now());
     }
 
     public int getStatus(){
@@ -44,6 +48,14 @@ public class API_RESPONSE implements Serializable {
 
     public void setData(Object data) {
         this.data = data;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
     public API_RESPONSE Success(Object data){
