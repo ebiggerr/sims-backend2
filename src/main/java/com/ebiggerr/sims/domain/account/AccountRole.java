@@ -23,7 +23,7 @@ public class AccountRole implements Serializable {
     private Account account;
 
     @OneToOne
-    @JoinColumn( referencedColumnName ="id", name = "\"roleId\"", nullable = false,insertable = false, updatable = false)
+    @JoinColumn( referencedColumnName ="\"roleId\"", name = "\"roleId\"", nullable = false,insertable = false, updatable = false)
     private RoleDetails roleDetails;
 
     @Column(name ="\"creationTime\"")
