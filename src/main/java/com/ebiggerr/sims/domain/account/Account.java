@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -50,6 +51,9 @@ public class Account extends BaseEntity implements UserDetails {
 
     @OneToMany(fetch=FetchType.LAZY, mappedBy = "account")
     private List<AccountRole> accountRoleSet;
+
+    @Column(name = "\"lastLoginTime\"")
+    private LocalDateTime lastLoginTime;
 
     protected Account(){
 
@@ -127,6 +131,10 @@ public class Account extends BaseEntity implements UserDetails {
         return this.accountStatus;
     }
 
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+
     public static Account Create(@NotNull CreateAccountInput input){
 
         return new Account(
@@ -142,6 +150,21 @@ public class Account extends BaseEntity implements UserDetails {
         );
     }
 
+    public void updateLastLogin(){
+        this.lastLoginTime = LocalDateTime.now();
+    }
+
+    public void softDelete(String adminUsername){
+        this.isDeleted = true;
+        this.remarks = "Revoked by admin with username : " + adminUsername + " at " + LocalDateTime.now() ;
+    }
+
+    public void approveAccount(String adminUsername){
+        this.accountStatus = AccountStatus.APPROVED;
+        this.remarks = "Approved by admin with username : " + adminUsername + " at " + LocalDateTime.now();
+    }
+
+    //update username, password, email address, first name or last name
     public Account updateEntity(AccountUpdateInput accountUpdateInput){
 
 

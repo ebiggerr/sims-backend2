@@ -61,6 +61,7 @@ public class AccountController {
 
                 String token = Token_Provider.generateTokenFromAuthentication(auth);
                 TokenDto tokenDto = TokenDto.CreateTokenDto(token);
+                logger.info("User with username :" + input.getUsername() + " successfully requested authentication token.");
 
                 return new API_RESPONSE().Success(tokenDto);
             }
@@ -73,19 +74,19 @@ public class AccountController {
                 return new API_RESPONSE().NotFound("No user with this username found : " + input.getUsername() );
             }
             else{
-                logger.error( "Something went wrong when doing authentication. " + e.getMessage() );
+                logger.error( "Something went wrong when doing authentication. Exception Message : " + e.getMessage() );
                 return new API_RESPONSE().Error();
             }
         }
+        logger.error( "Something went wrong when doing authentication. ");
         return new API_RESPONSE().Error();
     }
-
 
     @GetMapping(path = "/user/username/" )
     public API_RESPONSE getAUserUsingUsername(@RequestBody GetAccountInput input){
 
         try {
-            Account acc = (Account) _accountService.loadUserByUsername(input.getUsername(), false);
+            Account acc = (Account) _accountService.loadUserByUsername_NotLogin(input.getUsername());
             AccountOutput accDto = AccountMapper.INSTANCE.accountToAccountDto(acc);
 
             return new API_RESPONSE().Success(accDto);
@@ -99,7 +100,7 @@ public class AccountController {
     public API_RESPONSE getAUserUsingUsername_Path(@PathVariable String username){
 
         try {
-            Account acc = (Account) _accountService.loadUserByUsername(username, false);
+            Account acc = (Account) _accountService.loadUserByUsername_NotLogin(username);
             AccountOutput accDto = AccountMapper.INSTANCE.accountToAccountDto(acc);
 
             return new API_RESPONSE().Success(accDto);
@@ -167,7 +168,6 @@ public class AccountController {
         // username of account that made the POST request
         String username = null;
         Result result = null;
-        boolean success = false;
 
         try{
             username = Token_Provider.getUsernameFromToken(token);
@@ -179,7 +179,7 @@ public class AccountController {
 
             // target account that will have roles assigned to
             try {
-                Account acc = (Account) _accountService.loadUserByUsername(input.username, false);
+                Account acc = (Account) _accountService.loadUserByUsername_NotLogin(input.username);
 
                 result = _accountService.assigningRolesToAnAccount(acc, input, username);
 
@@ -187,15 +187,9 @@ public class AccountController {
                 return new API_RESPONSE().NotFound(e.getMessage());
             }
 
-            // Get the roles of input DTO by calling the Role Service
-
-            // Assume that the roles input from DTO will be more than one
-
-            // Get back a list of role
-
-            // Loop the list to create a list of RoleDetails and then save them into database
-
+            // return true if successful operation
             if(result.status){
+                logger.info("Admin with username : " + username + " updated the roles for account with username : " + input.username );
                 return new API_RESPONSE().Success("Roles have assigned to account with username of :" + input.username);
             }
             else{
@@ -206,6 +200,18 @@ public class AccountController {
         return new API_RESPONSE().Error();
     }
 
+    /**
+     * Endpoint for user with administrative privileges to revoke assigned roles to an account
+     *
+     *
+     * @param token For the purpose of username extraction, the username in the token
+     *              would be used to log in the database that who grant the roles to the
+     *              target account
+     * @param input DTO, containing the username of the target account and the roles string
+     *              ( commas separated, for example : "Inventory Manager,Staff" ) - Containing two
+     *              roles in this example
+     * @return API response that tells the user of the result of the registration
+     */
     @PreAuthorize("hasAnyAuthority('Admin')")
     @DeleteMapping(path = "/account/roles")
     public API_RESPONSE revokeRolesAssignedToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
@@ -213,7 +219,6 @@ public class AccountController {
         // username of account that made the POST request
         String username = null;
         Result result = null;
-        boolean success = false;
 
         try{
             username = Token_Provider.getUsernameFromToken(token);
@@ -225,7 +230,7 @@ public class AccountController {
 
             // target account that will have roles assigned to
             try {
-                Account acc = (Account) _accountService.loadUserByUsername(input.username, false);
+                Account acc = (Account) _accountService.loadUserByUsername_NotLogin(input.username);
 
                 result = _accountService.revokingRolesToAnAccount(acc, input, username);
 
@@ -233,19 +238,64 @@ public class AccountController {
                 return new API_RESPONSE().NotFound(e.getMessage());
             }
 
-            // Get the roles of input DTO by calling the Role Service
-
-            // Assume that the roles input from DTO will be more than one
-
-            // Get back a list of role
-
-            // Loop the list to create a list of RoleDetails and then save them into database
-
+            // return true if successful operation
             if(result.status){
                 return new API_RESPONSE().Success("Revoked roles : " + input.roles + " assigned to account with username of :" + input.username);
             }
             else{
                 return new API_RESPONSE().Failed(result.message);
+            }
+        }
+
+        return new API_RESPONSE().Error();
+    }
+
+    @PreAuthorize("hasAnyAuthority('Admin')")
+    @DeleteMapping(path = "/account/{username}")
+    public API_RESPONSE revokeAnAccount(@RequestHeader(name="Authorization") String token, @PathVariable String username){
+
+        // username of account that made the POST request
+        String adminUsername = null;
+        Result result = null;
+
+        try{
+            adminUsername = Token_Provider.getUsernameFromToken(token);
+        }catch (CustomException e){
+            return new API_RESPONSE().Error();
+        }
+
+        if(adminUsername != null) {
+
+            try {
+                _accountService.revokeAnAccount(username, adminUsername);
+            } catch (UsernameNotFoundException e) {
+                return new API_RESPONSE().NotFound("No user with this username found.");
+            }
+        }
+
+        return new API_RESPONSE().Error();
+    }
+
+    @PreAuthorize("hasAnyAuthority('Admin')")
+    @PutMapping(path = "/account/{username}")
+    public API_RESPONSE approveAnAccount(@RequestHeader(name="Authorization") String token, @PathVariable String username){
+
+        // username of account that made the POST request
+        String adminUsername = null;
+        Result result = null;
+
+        try{
+            adminUsername = Token_Provider.getUsernameFromToken(token);
+        }catch (CustomException e){
+            return new API_RESPONSE().Error();
+        }
+
+        if(adminUsername != null) {
+
+            try {
+                _accountService.approveAnAccount(username, adminUsername);
+            } catch (UsernameNotFoundException e) {
+                return new API_RESPONSE().NotFound("No user with this username found.");
             }
         }
 

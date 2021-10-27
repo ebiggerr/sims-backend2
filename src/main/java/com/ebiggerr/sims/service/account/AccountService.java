@@ -11,6 +11,7 @@ import com.ebiggerr.sims.exception.RunTimeCustomException;
 import com.ebiggerr.sims.repository.account.AccountRepo;
 import com.ebiggerr.sims.repository.account.AccountRoleRepo;
 import com.ebiggerr.sims.repository.account.RoleDetailsRepo;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -45,6 +46,16 @@ public class AccountService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
+        // low performance - have to query twice
+
+        // this region only for update the last login time
+        Optional<Account> noNestedEntity = _accountRepo.retrieveOneUsingUsername_NoNested(username);
+        if(noNestedEntity.isPresent()){
+            updateLastLoginTime( noNestedEntity.get() );
+        }
+        else throw new UsernameNotFoundException("No user found");
+        //region end
+
         // Will only retrieve the records of roles under an non-deleted account that are still active ( means, excluding those soft deleted roles )
         Optional<Account> acc1 = _accountRepo.retrieveOneUsingUsername( username );
 
@@ -52,6 +63,25 @@ public class AccountService implements UserDetailsService {
             return (Account)acc1.get();
         }
         else throw new UsernameNotFoundException("No user found");
+    }
+
+    public UserDetails loadUserByUsername_NotLogin(String username) throws UsernameNotFoundException {
+
+            // Will only retrieve the records of roles under an non-deleted account that are still active ( means, excluding those soft deleted roles )
+            Optional<Account> acc1 = _accountRepo.retrieveOneUsingUsername(username);
+
+            if (acc1.isPresent()) {
+                return (Account) acc1.get();
+            } else throw new UsernameNotFoundException("No user found");
+
+    }
+
+    public Account updateLastLoginTime(Account account){
+
+        account.updateLastLogin();
+        account = _accountRepo.save(account);
+        return null;
+
     }
 
     public Account loadUserById(String id) throws UsernameNotFoundException{
@@ -214,4 +244,35 @@ public class AccountService implements UserDetailsService {
         return result;
     }
 
+    public boolean revokeAnAccount(String username, String adminUsername) throws UsernameNotFoundException{
+
+        Optional<Account> acc = _accountRepo.retrieveOneUsingUsername_NoNested(username);
+
+        if(acc.isPresent()){
+            Account account = acc.get();
+            account.softDelete(adminUsername); // will update the remark of the account
+            _accountRepo.save(account);
+        }
+        else{
+            throw new UsernameNotFoundException("No user found");
+        }
+
+        return false;
+    }
+
+    public boolean approveAnAccount(String username, String adminUsername) throws UsernameNotFoundException{
+
+        Optional<Account> acc = _accountRepo.retrieveOneUsingUsername_NoNested(username);
+
+        if(acc.isPresent()){
+            Account account = acc.get();
+            account.approveAccount(adminUsername); // will update the remark of the account
+            _accountRepo.save(account);
+        }
+        else{
+            throw new UsernameNotFoundException("No user found");
+        }
+
+        return false;
+    }
 }
