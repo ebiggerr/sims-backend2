@@ -17,6 +17,7 @@ import com.ebiggerr.sims.service.account.AccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -84,7 +85,7 @@ public class AccountController {
     public API_RESPONSE getAUserUsingUsername(@RequestBody GetAccountInput input){
 
         try {
-            Account acc = (Account) _accountService.loadUserByUsername(input.getUsername());
+            Account acc = (Account) _accountService.loadUserByUsername(input.getUsername(), false);
             AccountOutput accDto = AccountMapper.INSTANCE.accountToAccountDto(acc);
 
             return new API_RESPONSE().Success(accDto);
@@ -98,7 +99,7 @@ public class AccountController {
     public API_RESPONSE getAUserUsingUsername_Path(@PathVariable String username){
 
         try {
-            Account acc = (Account) _accountService.loadUserByUsername(username);
+            Account acc = (Account) _accountService.loadUserByUsername(username, false);
             AccountOutput accDto = AccountMapper.INSTANCE.accountToAccountDto(acc);
 
             return new API_RESPONSE().Success(accDto);
@@ -159,6 +160,7 @@ public class AccountController {
      *              roles in this example
      * @return API response that tells the user of the result of the registration
      */
+    @PreAuthorize("hasAnyAuthority('Admin')")
     @PostMapping(path = "/account/roles")
     public API_RESPONSE assigningRolesToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
 
@@ -177,7 +179,7 @@ public class AccountController {
 
             // target account that will have roles assigned to
             try {
-                Account acc = (Account) _accountService.loadUserByUsername(input.username);
+                Account acc = (Account) _accountService.loadUserByUsername(input.username, false);
 
                 result = _accountService.assigningRolesToAnAccount(acc, input, username);
 
@@ -204,6 +206,7 @@ public class AccountController {
         return new API_RESPONSE().Error();
     }
 
+    @PreAuthorize("hasAnyAuthority('Admin')")
     @DeleteMapping(path = "/account/roles")
     public API_RESPONSE revokeRolesAssignedToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
 
@@ -222,7 +225,7 @@ public class AccountController {
 
             // target account that will have roles assigned to
             try {
-                Account acc = (Account) _accountService.loadUserByUsername(input.username);
+                Account acc = (Account) _accountService.loadUserByUsername(input.username, false);
 
                 result = _accountService.revokingRolesToAnAccount(acc, input, username);
 
