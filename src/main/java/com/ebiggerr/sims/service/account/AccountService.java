@@ -3,6 +3,7 @@ package com.ebiggerr.sims.service.account;
 import com.ebiggerr.sims.DTO.Account.CreateAccountInput;
 import com.ebiggerr.sims.DTO.Result;
 import com.ebiggerr.sims.DTO.Roles.UpdateRolesInput;
+import com.ebiggerr.sims.config.jwt.Token_Provider;
 import com.ebiggerr.sims.domain.account.Account;
 import com.ebiggerr.sims.domain.account.AccountRole;
 import com.ebiggerr.sims.domain.account.RoleDetails;
@@ -11,16 +12,16 @@ import com.ebiggerr.sims.exception.RunTimeCustomException;
 import com.ebiggerr.sims.repository.account.AccountRepo;
 import com.ebiggerr.sims.repository.account.AccountRoleRepo;
 import com.ebiggerr.sims.repository.account.RoleDetailsRepo;
-import org.springframework.security.core.userdetails.User;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -29,6 +30,8 @@ public class AccountService implements UserDetailsService {
     private final AccountRepo _accountRepo;
     private final RoleDetailsRepo _roleDetailsRepo;
     private final AccountRoleRepo _accountRoleRepo;
+
+    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     public AccountService(AccountRepo accountRepo, RoleDetailsRepo roleDetailsRepo, AccountRoleRepo accountRoleRepo){
         _accountRepo = accountRepo;
@@ -65,23 +68,22 @@ public class AccountService implements UserDetailsService {
         else throw new UsernameNotFoundException("No user found");
     }
 
-    public UserDetails loadUserByUsername_NotLogin(String username) throws UsernameNotFoundException {
+    public Account updateLastLoginTime(Account account){
+
+        account.updateLastLogin();
+        _accountRepo.save(account);
+        return null;
+
+    }
+
+    public Account loadUserByUsername_NotLogin(String username) throws UsernameNotFoundException {
 
             // Will only retrieve the records of roles under an non-deleted account that are still active ( means, excluding those soft deleted roles )
             Optional<Account> acc1 = _accountRepo.retrieveOneUsingUsername(username);
 
             if (acc1.isPresent()) {
-                return (Account) acc1.get();
+                return acc1.get();
             } else throw new UsernameNotFoundException("No user found");
-
-    }
-
-    public Account updateLastLoginTime(Account account){
-
-        account.updateLastLogin();
-        account = _accountRepo.save(account);
-        return null;
-
     }
 
     public Account loadUserById(String id) throws UsernameNotFoundException{
@@ -107,137 +109,138 @@ public class AccountService implements UserDetailsService {
         return true;
     }
 
-    public Result assigningRolesToAnAccount(Account acc, UpdateRolesInput input, String username) throws RunTimeCustomException {
+    @Transactional
+    public Result assigningRolesToAnAccount(String token, UpdateRolesInput input) throws RunTimeCustomException {
 
+        String username; //username that made the request
         Result result = new Result();
         result.status = false;
-        String invalidRoles  = "";
 
-        //roles from user input
-        String[] roles = RoleDetails.getRolesFromCommasSeparatedString(input);
-        //valid roles retrieved from the database based on the user input
-        List<AccountRole> list = new LinkedList<>();
-        String[] invalid = new String[roles.length];
-        AtomicInteger index = new AtomicInteger(0);
-
-        for (String role : roles) {
-            // in case user input is in upper case. For example: "ADMIN"
-            // capitalize -> "Admin"
-            role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
-            Optional<RoleDetails> roleDetails = _roleDetailsRepo.getByRoleNameIs(role);
-
-            //final for the lambda expression later
-            String finalRole = role;
-            roleDetails.ifPresentOrElse((details) -> {
-                        list.add(AccountRole.assigningRolesToAnAccount(acc, details, username));
-                    }
-                    ,
-                    () -> {
-                        invalid[index.get()] = finalRole;
-                        index.getAndIncrement();
-                    }
-            );
-
+        try{
+            username = Token_Provider.getUsernameFromToken(token);
+        }catch (CustomException e){
+            return result;
         }
 
-        // if there is more roles from the user input than the valid roles retrieved
-        if ((roles.length > list.size()) && (list.size() >= 0)) {
+        if(username != null) {
 
-            for( int i=0; i < roles.length; i++ ){
-                invalidRoles =  invalid[i]  + " ";
+            Account acc;
+            String invalidRoles  = "";
+
+            Optional<Account> optionalAccount = _accountRepo.retrieveOneUsingUsername_NoNested(input.username);
+
+            if( optionalAccount.isPresent() ){
+                acc = optionalAccount.get();
             }
-            result.message = "Some invalid roles that is not in the system cannot be assigned. : " + invalidRoles;
-            result.status = false;
-            result.arr = invalid;
+            else{
+                return result;
+            }
 
-            return result;
-            //throw new RunTimeCustomException("There is some invalid roles that could not be assigned to the account.");
-        }
+            //roles from user input
+            String[] roles = RoleDetails.getRolesFromCommasSeparatedString(input);
+            //valid roles retrieved from the database based on the user input
+            List<AccountRole> list = new LinkedList<>();
+            String[] invalid = new String[roles.length];
+            AtomicInteger index = new AtomicInteger(0);
 
-        if (list.size() > 0 && roles.length == list.size() ) {
-            _accountRoleRepo.saveAll(list);
-            result.status = true;
-            result.message = "Success";
-        }
-        else{
-            result.status = false;
-            result.message = "Something went wrong when adding roles.";
+            for (String role : roles) {
+                // in case user input is in upper case. For example: "ADMIN"
+                // capitalize -> "Admin"
+                role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+                Optional<RoleDetails> roleDetails = _roleDetailsRepo.getByRoleNameIs(role);
 
-            return result;
+                //final for the lambda expression later
+                String finalRole = role;
+                roleDetails.ifPresentOrElse((details) -> {
+                            list.add(AccountRole.assigningRolesToAnAccount(acc, details, username));
+                        }
+                        ,
+                        () -> {
+                            invalid[index.get()] = finalRole;
+                            index.getAndIncrement();
+                        }
+                );
+
+            }
+
+            // if there is more roles from the user input than the valid roles retrieved
+            if ((roles.length > list.size()) && (list.size() >= 0)) {
+
+                for (int i = 0; i < roles.length; i++) {
+                    invalidRoles = invalid[i] + ", ";
+                }
+                result.message = "Some invalid roles that is not in the system cannot be assigned. : " + invalidRoles;
+                result.arr = invalid;
+
+                return result;
+                //throw new RunTimeCustomException("There is some invalid roles that could not be assigned to the account.");
+            }
+
+            if (list.size() > 0 && roles.length == list.size()) {
+                _accountRoleRepo.saveAll(list);
+                result.status = true;
+                result.message = "Success";
+
+                logger.info("Admin with username : " + username + " updated the roles for account with username : " + input.username );
+            } else {
+                result.message = "Something went wrong when adding roles.";
+            }
         }
 
         return result;
     }
 
-    public Result revokingRolesToAnAccount(Account acc, UpdateRolesInput input, String username){
+    @Transactional
+    public Result revokingRolesToAnAccount(String token, UpdateRolesInput input){
 
+        String username; //username that made the request
         Result result = new Result();
         result.status = false;
-        String invalidRoles  = "";
 
-        String[] roles = RoleDetails.getRolesFromCommasSeparatedString(input);
-        List<AccountRole> list = new LinkedList<>();
-        String[] invalid = new String[roles.length];
-        AtomicInteger index = new AtomicInteger(0);
-
-        for (String role : roles) {
-            // in case user input is in upper case. For example: "ADMIN"
-            // capitalize -> "Admin"
-            role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
-            Optional<RoleDetails> roleDetails = _roleDetailsRepo.getByRoleNameIs(role);
-
-            //final for the lambda expression later
-            String finalRole = role;
-            roleDetails.ifPresentOrElse((details) -> {
-                        list.add(AccountRole.assigningRolesToAnAccount(acc, details, username));
-                    }
-                    ,
-                    () -> {
-                        invalid[index.get()] = finalRole;
-                        index.getAndIncrement();
-                    }
-            );
-
-        }
-
-        if ((roles.length > list.size()) && (list.size() >= 0)) {
-
-            for( int i=0; i < roles.length; i++ ){
-                invalidRoles =  invalid[i]  + " ";
-            }
-            result.message = "Some invalid roles that is not in the system cannot be revoked. : " + invalidRoles;
-            result.status = false;
-            result.arr = invalid;
-
+        try{
+            username = Token_Provider.getUsernameFromToken(token);
+        }catch (CustomException e){
             return result;
-            //throw new RunTimeCustomException("There is some invalid roles that could not be assigned to the account.");
         }
 
-        if (list.size() > 0 && roles.length == list.size() ) {
+        if(username != null) {
 
+            Account acc;
 
-            for (AccountRole accRole: list) {
+            Optional<Account> optionalAccount = _accountRepo.retrieveOneUsingUsername_NoNested(input.username);
 
-                //query those that is still active ( meaning excluding those soft deleted )
-                Optional<AccountRole> query = _accountRoleRepo.findActiveOneUsingAccountIdAndRoleId(accRole.getAccountId(), accRole.getRoleId() );
+            if( optionalAccount.isPresent() ){
+                acc = optionalAccount.get();
+            }
+            else{
+                return result;
+            }
 
-                if (query.isPresent()){
+            String[] roles = RoleDetails.getRolesFromCommasSeparatedString(input);
 
-                    //update the entity
-                    AccountRole entity = query.get();
-                    entity.SoftDelete();
-                    _accountRoleRepo.save(entity);
+            for (String role : roles){
+
+                role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+                Optional<RoleDetails> roleDetails = _roleDetailsRepo.getByRoleNameIs(role);
+
+                if( roleDetails.isPresent()){
+
+                    Optional<AccountRole> accountRole = _accountRoleRepo.findActiveOneUsingAccountIdAndRoleId(acc.getId(), roleDetails.get().getRoleId() );
+
+                    if( accountRole.isPresent()){
+                        AccountRole accRole = accountRole.get();
+                        accRole.SoftDelete();
+                        _accountRoleRepo.save(accRole);
+                        logger.info("Admin user with username : " + username + " revoked Role : " + roleDetails.get().getRoleName() + " of account with username : " + acc.getUsername() );
+                    }
+                    else{
+                        return result;
+                    }
 
                 }
             }
 
             result.status = true;
-            result.message = "Success";
-        }
-        else{
-            result.status = false;
-            result.message = "Something went wrong when revoking roles.";
-
             return result;
         }
 
@@ -252,12 +255,14 @@ public class AccountService implements UserDetailsService {
             Account account = acc.get();
             account.softDelete(adminUsername); // will update the remark of the account
             _accountRepo.save(account);
+
+            return true;
         }
         else{
             throw new UsernameNotFoundException("No user found");
         }
 
-        return false;
+
     }
 
     public boolean approveAnAccount(String username, String adminUsername) throws UsernameNotFoundException{
@@ -268,11 +273,13 @@ public class AccountService implements UserDetailsService {
             Account account = acc.get();
             account.approveAccount(adminUsername); // will update the remark of the account
             _accountRepo.save(account);
+
+            return true;
         }
         else{
             throw new UsernameNotFoundException("No user found");
         }
 
-        return false;
+
     }
 }

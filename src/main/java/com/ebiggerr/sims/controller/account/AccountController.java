@@ -86,7 +86,7 @@ public class AccountController {
     public API_RESPONSE getAUserUsingUsername(@RequestBody GetAccountInput input){
 
         try {
-            Account acc = (Account) _accountService.loadUserByUsername_NotLogin(input.getUsername());
+            Account acc = _accountService.loadUserByUsername_NotLogin(input.getUsername());
             AccountOutput accDto = AccountMapper.INSTANCE.accountToAccountDto(acc);
 
             return new API_RESPONSE().Success(accDto);
@@ -100,7 +100,7 @@ public class AccountController {
     public API_RESPONSE getAUserUsingUsername_Path(@PathVariable String username){
 
         try {
-            Account acc = (Account) _accountService.loadUserByUsername_NotLogin(username);
+            Account acc = _accountService.loadUserByUsername_NotLogin(username);
             AccountOutput accDto = AccountMapper.INSTANCE.accountToAccountDto(acc);
 
             return new API_RESPONSE().Success(accDto);
@@ -165,36 +165,16 @@ public class AccountController {
     @PostMapping(path = "/account/roles")
     public API_RESPONSE assigningRolesToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
 
-        // username of account that made the POST request
-        String username = null;
         Result result = null;
 
-        try{
-            username = Token_Provider.getUsernameFromToken(token);
-        }catch (CustomException e){
-            return new API_RESPONSE().Error();
+        try {
+            result = _accountService.assigningRolesToAnAccount(token, input);
+        }catch (UsernameNotFoundException e){
+            return new API_RESPONSE().NotFound(e.getMessage());
         }
 
-        if(username != null){
-
-            // target account that will have roles assigned to
-            try {
-                Account acc = (Account) _accountService.loadUserByUsername_NotLogin(input.username);
-
-                result = _accountService.assigningRolesToAnAccount(acc, input, username);
-
-            }catch (UsernameNotFoundException e){
-                return new API_RESPONSE().NotFound(e.getMessage());
-            }
-
-            // return true if successful operation
-            if(result.status){
-                logger.info("Admin with username : " + username + " updated the roles for account with username : " + input.username );
-                return new API_RESPONSE().Success("Roles have assigned to account with username of :" + input.username);
-            }
-            else{
-                return new API_RESPONSE().Failed(result.message);
-            }
+        if(result.status){
+            return new API_RESPONSE().Success();
         }
 
         return new API_RESPONSE().Error();
@@ -216,36 +196,15 @@ public class AccountController {
     @DeleteMapping(path = "/account/roles")
     public API_RESPONSE revokeRolesAssignedToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
 
-        // username of account that made the POST request
-        String username = null;
         Result result = null;
 
         try{
-            username = Token_Provider.getUsernameFromToken(token);
-        }catch (CustomException e){
+            result = _accountService.revokingRolesToAnAccount(token, input);
+        }catch (Exception e){
             return new API_RESPONSE().Error();
         }
 
-        if(username != null){
-
-            // target account that will have roles assigned to
-            try {
-                Account acc = (Account) _accountService.loadUserByUsername_NotLogin(input.username);
-
-                result = _accountService.revokingRolesToAnAccount(acc, input, username);
-
-            }catch (UsernameNotFoundException e){
-                return new API_RESPONSE().NotFound(e.getMessage());
-            }
-
-            // return true if successful operation
-            if(result.status){
-                return new API_RESPONSE().Success("Revoked roles : " + input.roles + " assigned to account with username of :" + input.username);
-            }
-            else{
-                return new API_RESPONSE().Failed(result.message);
-            }
-        }
+        if(result.status) return new API_RESPONSE().Success();
 
         return new API_RESPONSE().Error();
     }
@@ -257,6 +216,7 @@ public class AccountController {
         // username of account that made the POST request
         String adminUsername = null;
         Result result = null;
+        boolean success = false;
 
         try{
             adminUsername = Token_Provider.getUsernameFromToken(token);
@@ -267,10 +227,13 @@ public class AccountController {
         if(adminUsername != null) {
 
             try {
-                _accountService.revokeAnAccount(username, adminUsername);
+                success = _accountService.revokeAnAccount(username, adminUsername);
             } catch (UsernameNotFoundException e) {
                 return new API_RESPONSE().NotFound("No user with this username found.");
             }
+
+            if(success) return new API_RESPONSE().Success();
+            else return new API_RESPONSE().Failed("Something went wrong.");
         }
 
         return new API_RESPONSE().Error();
@@ -283,6 +246,7 @@ public class AccountController {
         // username of account that made the POST request
         String adminUsername = null;
         Result result = null;
+        boolean success = false;
 
         try{
             adminUsername = Token_Provider.getUsernameFromToken(token);
@@ -293,11 +257,36 @@ public class AccountController {
         if(adminUsername != null) {
 
             try {
-                _accountService.approveAnAccount(username, adminUsername);
+                success = _accountService.approveAnAccount(username, adminUsername);
             } catch (UsernameNotFoundException e) {
                 return new API_RESPONSE().NotFound("No user with this username found.");
             }
+
+            if(success) return new API_RESPONSE().Success();
+            else return new API_RESPONSE().Failed("Something went wrong.");
         }
+
+        return new API_RESPONSE().Error();
+    }
+
+    @PreAuthorize("hasAnyAuthority('Admin')")
+    @PostMapping(path = "/roles")
+    public API_RESPONSE createNewRole(){
+
+
+        return new API_RESPONSE().Error();
+    }
+
+    @PreAuthorize("hasAnyAuthority('Admin')")
+    @PutMapping(path = "/roles")
+    public API_RESPONSE updateARole(){
+
+        return new API_RESPONSE().Error();
+    }
+
+    @PreAuthorize("hasAnyAuthority('Admin')")
+    @DeleteMapping(path= "/roles")
+    public API_RESPONSE deleteAROle(){
 
         return new API_RESPONSE().Error();
     }
