@@ -31,14 +31,15 @@ public class BaseEntity {
 
     protected BaseEntity(){
         this.creationTime = LocalDateTime.now();
+        this.isDeleted = false;
     }
 
-    private BaseEntity(UUID id, boolean isDeleted, LocalDateTime creationTime, LocalDateTime lastModificationTime) {
+    /*private BaseEntity(UUID id, boolean isDeleted, LocalDateTime creationTime, LocalDateTime lastModificationTime) {
         this.id = id;
         this.isDeleted = isDeleted;
         this.creationTime = creationTime;
         this.lastModificationTime = lastModificationTime;
-    }
+    }*/
 
     public boolean isDeleted(){
         return this.isDeleted;

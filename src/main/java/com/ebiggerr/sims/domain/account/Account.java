@@ -73,7 +73,7 @@ public class Account extends BaseEntity implements UserDetails {
                    List<AccountRole> accountRoleSet) {
         //super(id, isDeleted, creationTime, lastModificationTime);
         super();
-        this.isDeleted = false;
+        //this.isDeleted = false;
         this.username = username;
         this.password = passwordEncoder.encode(password);
         this.emailAddress = emailAddress;
