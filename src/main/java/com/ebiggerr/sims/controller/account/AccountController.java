@@ -1,11 +1,10 @@
 package com.ebiggerr.sims.controller.account;
 
 import com.ebiggerr.sims.DTO.API_RESPONSE;
-import com.ebiggerr.sims.DTO.Account.AccountOutput;
-import com.ebiggerr.sims.DTO.Account.CreateAccountInput;
-import com.ebiggerr.sims.DTO.Account.GetAccountInput;
-import com.ebiggerr.sims.DTO.Account.UserName_Password_Input;
+import com.ebiggerr.sims.DTO.Account.*;
 import com.ebiggerr.sims.DTO.Result;
+import com.ebiggerr.sims.DTO.Roles.RoleInput;
+import com.ebiggerr.sims.DTO.Roles.UpdateRoleDetailsInput;
 import com.ebiggerr.sims.DTO.Roles.UpdateRolesInput;
 import com.ebiggerr.sims.DTO.token.TokenDto;
 import com.ebiggerr.sims.config.jwt.Token_Provider;
@@ -271,22 +270,39 @@ public class AccountController {
 
     @PreAuthorize("hasAnyAuthority('Admin')")
     @PostMapping(path = "/roles")
-    public API_RESPONSE createNewRole(){
+    public API_RESPONSE createNewRole(@RequestBody RoleInput input){
 
+        RoleInput result = new RoleInput();
 
-        return new API_RESPONSE().Error();
+        result = _accountService.createAnNewRole(input);
+
+        if(result.roleName == null) return new API_RESPONSE().Failed("Failed");
+
+        return new API_RESPONSE().Success(result);
     }
 
     @PreAuthorize("hasAnyAuthority('Admin')")
     @PutMapping(path = "/roles")
-    public API_RESPONSE updateARole(){
+    public API_RESPONSE updateARole(@RequestBody UpdateRoleDetailsInput input){
 
-        return new API_RESPONSE().Error();
+        UpdateRoleDetailsInput result = new UpdateRoleDetailsInput();
+
+        result = _accountService.updateARole(input);
+
+        if(result.roleName == null) return new API_RESPONSE().Failed("Failed");
+
+        return new API_RESPONSE().Success(result);
     }
 
     @PreAuthorize("hasAnyAuthority('Admin')")
     @DeleteMapping(path= "/roles")
-    public API_RESPONSE deleteAROle(){
+    public API_RESPONSE deleteARole(@RequestBody UpdateRoleDetailsInput input){
+
+        boolean success = false;
+
+        success = _accountService.deleteARole(input);
+
+        if(success) return new API_RESPONSE().Success();
 
         return new API_RESPONSE().Error();
     }

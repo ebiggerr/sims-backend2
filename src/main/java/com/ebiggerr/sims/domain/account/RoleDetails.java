@@ -1,14 +1,14 @@
 package com.ebiggerr.sims.domain.account;
 
+import com.ebiggerr.sims.DTO.Roles.RoleInput;
+import com.ebiggerr.sims.DTO.Roles.UpdateRoleDetailsInput;
 import com.ebiggerr.sims.DTO.Roles.UpdateRolesInput;
 
-import javax.management.relation.Role;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name="\"roleDetails\"")
@@ -50,15 +50,33 @@ public class RoleDetails{
         this.isDeleted = false;
     }
 
-    public void updateRoleDetails(RoleDetails roleDetailsInput){
+    protected RoleDetails(RoleInput input){
+        this.creationTime = LocalDateTime.now();
+        this.isDeleted = false;
+        this.roleDescription = input.getRoleDescription();
+        this.roleName = input.getRoleName();
+    }
 
-        this.roleName = roleDetailsInput.roleName;
-        this.roleDescription = roleDetailsInput.roleDescription;
+    public void updateRoleDetails(UpdateRoleDetailsInput input){
+
+        this.roleName = input.getRoleName();
+        this.roleDescription = input.getRoleDescription();
         this.lastModificationTime = LocalDateTime.now();
 
     }
 
+    public void deleteRoleDetails(){
+        this.isDeleted = true;
+        this.lastModificationTime = LocalDateTime.now();
+    }
+
     public static String[] getRolesFromCommasSeparatedString(UpdateRolesInput input){
         return input.roles.split(",");
+    }
+
+    public static RoleDetails createAnNewRole(RoleInput input){
+
+        return new RoleDetails(input);
+
     }
 }

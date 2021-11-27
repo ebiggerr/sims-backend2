@@ -13,4 +13,8 @@ public interface RoleDetailsRepo extends JpaRepository<RoleDetails, UUID> {
 
     @Query("SELECT DISTINCT roleDetails FROM RoleDetails roleDetails WHERE roleDetails.roleName= :roleName")
     Optional<RoleDetails> getByRoleNameIs(String roleName);
+
+    @Query("SELECT DISTINCT roleDetails FROM RoleDetails roleDetails WHERE roleDetails.id=: roleId")
+    Optional<RoleDetails> getByRoleIdIs(String roleId);
+
 }

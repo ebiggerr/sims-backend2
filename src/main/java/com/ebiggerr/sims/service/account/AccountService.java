@@ -1,7 +1,9 @@
 package com.ebiggerr.sims.service.account;
 
 import com.ebiggerr.sims.DTO.Account.CreateAccountInput;
+import com.ebiggerr.sims.DTO.Roles.RoleInput;
 import com.ebiggerr.sims.DTO.Result;
+import com.ebiggerr.sims.DTO.Roles.UpdateRoleDetailsInput;
 import com.ebiggerr.sims.DTO.Roles.UpdateRolesInput;
 import com.ebiggerr.sims.config.jwt.Token_Provider;
 import com.ebiggerr.sims.domain.account.Account;
@@ -9,6 +11,7 @@ import com.ebiggerr.sims.domain.account.AccountRole;
 import com.ebiggerr.sims.domain.account.RoleDetails;
 import com.ebiggerr.sims.exception.CustomException;
 import com.ebiggerr.sims.exception.RunTimeCustomException;
+import com.ebiggerr.sims.mapper.account.RoleMapper;
 import com.ebiggerr.sims.repository.account.AccountRepo;
 import com.ebiggerr.sims.repository.account.AccountRoleRepo;
 import com.ebiggerr.sims.repository.account.RoleDetailsRepo;
@@ -281,5 +284,55 @@ public class AccountService implements UserDetailsService {
         }
 
 
+    }
+
+    public RoleInput createAnNewRole(RoleInput input){
+
+        RoleDetails entity = RoleDetails.createAnNewRole(input);
+
+        try {
+            _roleDetailsRepo.save(entity);
+            return RoleMapper.INSTANCE.roleToRoleDTO(entity);
+
+        }catch (Exception e) {
+            return new RoleInput();
+        }
+    }
+
+    public UpdateRoleDetailsInput updateARole(UpdateRoleDetailsInput input){
+
+        Optional<RoleDetails> roleDetails = _roleDetailsRepo.getByRoleIdIs(input.roleId);
+
+        if(roleDetails.isPresent()){
+
+            RoleDetails entity = roleDetails.get();
+            entity.updateRoleDetails(input);
+
+            _roleDetailsRepo.save(entity);
+
+            return RoleMapper.INSTANCE.roleToRoleDetailsUpdateDto(entity);
+        }
+        else{
+            return new UpdateRoleDetailsInput();
+        }
+
+    }
+
+    public boolean deleteARole(UpdateRoleDetailsInput input){
+
+        Optional<RoleDetails> roleDetails = _roleDetailsRepo.getByRoleIdIs(input.roleId);
+
+        if(roleDetails.isPresent()){
+
+            RoleDetails entity = roleDetails.get();
+            entity.deleteRoleDetails();
+
+            _roleDetailsRepo.save(entity);
+
+            return true;
+        }
+
+
+        return false;
     }
 }
