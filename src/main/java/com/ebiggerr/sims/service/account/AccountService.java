@@ -34,6 +34,7 @@ public class AccountService implements UserDetailsService {
     private final RoleDetailsRepo _roleDetailsRepo;
     private final AccountRoleRepo _accountRoleRepo;
 
+    private final Token_Provider tokenProvider = new Token_Provider();
     private final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     public AccountService(AccountRepo accountRepo, RoleDetailsRepo roleDetailsRepo, AccountRoleRepo accountRoleRepo){
@@ -120,7 +121,7 @@ public class AccountService implements UserDetailsService {
         result.status = false;
 
         try{
-            username = Token_Provider.getUsernameFromToken(token);
+            username = tokenProvider.getUsernameFromToken(token);
         }catch (CustomException e){
             return result;
         }
@@ -201,7 +202,7 @@ public class AccountService implements UserDetailsService {
         result.status = false;
 
         try{
-            username = Token_Provider.getUsernameFromToken(token);
+            username = tokenProvider.getUsernameFromToken(token);
         }catch (CustomException e){
             return result;
         }

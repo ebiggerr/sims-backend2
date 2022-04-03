@@ -29,6 +29,8 @@ public class AccountController {
 
     private final AccountService _accountService;
     private final AuthenticationManager _authenticationManager;
+    private final Token_Provider _tokenProvider = new Token_Provider();
+    private final String HEADER= "Authorization";
 
     private final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
@@ -58,7 +60,7 @@ public class AccountController {
 
             if( auth.isAuthenticated() ){
 
-                String token = Token_Provider.generateTokenFromAuthentication(auth);
+                String token = _tokenProvider.generateTokenFromAuthentication(auth);
                 TokenDto tokenDto = TokenDto.CreateTokenDto(token);
                 logger.info("User with username :" + input.getUsername() + " successfully requested authentication token.");
 
@@ -162,7 +164,7 @@ public class AccountController {
      */
     @PreAuthorize("hasAnyAuthority('Admin')")
     @PostMapping(path = "/account/roles")
-    public API_RESPONSE assigningRolesToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
+    public API_RESPONSE assigningRolesToAnAccount(@RequestHeader(name=HEADER) String token, @RequestBody UpdateRolesInput input){
 
         Result result = null;
 
@@ -193,7 +195,7 @@ public class AccountController {
      */
     @PreAuthorize("hasAnyAuthority('Admin')")
     @DeleteMapping(path = "/account/roles")
-    public API_RESPONSE revokeRolesAssignedToAnAccount(@RequestHeader(name="Authorization") String token, @RequestBody UpdateRolesInput input){
+    public API_RESPONSE revokeRolesAssignedToAnAccount(@RequestHeader(name=HEADER) String token, @RequestBody UpdateRolesInput input){
 
         Result result = null;
 
@@ -210,7 +212,7 @@ public class AccountController {
 
     @PreAuthorize("hasAnyAuthority('Admin')")
     @DeleteMapping(path = "/account/{username}")
-    public API_RESPONSE revokeAnAccount(@RequestHeader(name="Authorization") String token, @PathVariable String username){
+    public API_RESPONSE revokeAnAccount(@RequestHeader(name=HEADER) String token, @PathVariable String username){
 
         // username of account that made the POST request
         String adminUsername = null;
@@ -218,7 +220,7 @@ public class AccountController {
         boolean success = false;
 
         try{
-            adminUsername = Token_Provider.getUsernameFromToken(token);
+            adminUsername = _tokenProvider.getUsernameFromToken(token);
         }catch (CustomException e){
             return new API_RESPONSE().Error();
         }
@@ -240,7 +242,7 @@ public class AccountController {
 
     @PreAuthorize("hasAnyAuthority('Admin')")
     @PutMapping(path = "/account/{username}")
-    public API_RESPONSE approveAnAccount(@RequestHeader(name="Authorization") String token, @PathVariable String username){
+    public API_RESPONSE approveAnAccount(@RequestHeader(name=HEADER) String token, @PathVariable String username){
 
         // username of account that made the POST request
         String adminUsername = null;
@@ -248,7 +250,7 @@ public class AccountController {
         boolean success = false;
 
         try{
-            adminUsername = Token_Provider.getUsernameFromToken(token);
+            adminUsername = _tokenProvider.getUsernameFromToken(token);
         }catch (CustomException e){
             return new API_RESPONSE().Error();
         }
