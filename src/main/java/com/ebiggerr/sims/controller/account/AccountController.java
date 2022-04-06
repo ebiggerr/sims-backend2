@@ -29,17 +29,19 @@ public class AccountController {
 
     private final AccountService _accountService;
     private final AuthenticationManager _authenticationManager;
-    private final Token_Provider _tokenProvider = new Token_Provider();
+    private final Token_Provider _tokenProvider;
     private final String HEADER= "Authorization";
 
     private final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
     public AccountController(AccountService accountService,
-                             AuthenticationManager authenticationManager
+                             AuthenticationManager authenticationManager,
+                             Token_Provider tokenProvider
                              ){
 
         _accountService = accountService;
         _authenticationManager = authenticationManager;
+        _tokenProvider = tokenProvider;
     }
 
     /**
