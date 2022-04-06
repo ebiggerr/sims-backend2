@@ -10,7 +10,6 @@ import com.ebiggerr.sims.domain.account.Account;
 import com.ebiggerr.sims.exception.CustomException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,39 +29,23 @@ public class Token_Provider extends JWT {
 
     private static final Logger logger = LoggerFactory.getLogger(Token_Provider.class);
 
+    @Value("${jwt.token.secret}")
     private String TOKEN_PRIVATE_KEY;
 
+    @Value("${jwt.token.prefix}")
     private String TOKEN_PREFIX;
 
+    @Value("${jwt.token.header}")
     private String TOKEN_HEADER;
 
+    @Value("${jwt.token.issuer}")
     private String ISSUER;
 
+    @Value("${jwt.claim.username}")
     private String USERNAME_PRIVATE_CLAIM;
 
+    @Value("${jwt.claim.roles}")
     private String ROLES_PRIVATE_CLAIM;
-
-    public Token_Provider(){
-
-    }
-
-    //The JWTAuthentication_Filter class's way of using @Value works fine there, but not here - null value
-    //Thus, took a total different approach to get value from application.properties
-    @Autowired
-    public Token_Provider(@Value("${jwt.token.secret}") String secret,
-                          @Value("${jwt.token.prefix}") String prefix,
-                          @Value("${jwt.token.header}") String header,
-                          @Value("${jwt.token.issuer}") String issuer,
-                          @Value("${jwt.claim.username}") String claim_username,
-                          @Value("${jwt.claim.roles}") String claim_roles
-                          ){
-        this.TOKEN_PRIVATE_KEY = secret;
-        this.TOKEN_PREFIX = prefix;
-        this.TOKEN_HEADER = header;
-        this.ISSUER = issuer;
-        this.USERNAME_PRIVATE_CLAIM = claim_username;
-        this.ROLES_PRIVATE_CLAIM = claim_roles;
-    }
 
     /**
      *
@@ -94,11 +77,11 @@ public class Token_Provider extends JWT {
             if( username != null ) {
 
                 return JWT.create()
-                        .withClaim(getUSERNAME_PRIVATE_CLAIM(), username)   //account username of the JWT issuing to
-                        .withClaim(getROLES_PRIVATE_CLAIM(), authorities) //Example- roles: "Staff","Manager"
+                        .withClaim(USERNAME_PRIVATE_CLAIM, username)   //account username of the JWT issuing to
+                        .withClaim(ROLES_PRIVATE_CLAIM, authorities) //Example- roles: "Staff","Manager"
                         .withIssuedAt(now)
                         .withExpiresAt(exp)
-                        .withIssuer(getISSUER())
+                        .withIssuer(ISSUER)
                         .sign(getAlgorithm());
             }
             else{
@@ -120,7 +103,7 @@ public class Token_Provider extends JWT {
     public DecodedJWT verifyAndDecodeToken(String token) throws CustomException {
 
         try{
-            JWTVerifier verifier = JWT.require(getAlgorithm()).withIssuer(getISSUER()).build();
+            JWTVerifier verifier = JWT.require(getAlgorithm()).withIssuer(ISSUER).build();
             return verifier.verify(token);
 
         }catch (JWTVerificationException exception){
@@ -141,7 +124,7 @@ public class Token_Provider extends JWT {
         if( decodedJWT != null && username != null ) {
 
             final Collection<? extends GrantedAuthority> authorities =
-                    Arrays.stream(decodedJWT.getClaim(getROLES_PRIVATE_CLAIM()).asString().split(",")).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+                    Arrays.stream(decodedJWT.getClaim(ROLES_PRIVATE_CLAIM).asString().split(",")).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
             return new UsernamePasswordAuthenticationToken(username, "", authorities);
         }
@@ -158,11 +141,11 @@ public class Token_Provider extends JWT {
     public String getUsernameFromToken(String token) throws CustomException {
 
         try {
-            token = token.replace(getTOKEN_PREFIX(), "").trim();
+            token = token.replace(TOKEN_PREFIX, "").trim();
 
             DecodedJWT decodedJWT = JWT.require(getAlgorithm()).build().verify(token);
 
-            token = decodedJWT.getClaim(getUSERNAME_PRIVATE_CLAIM()).asString();
+            token = decodedJWT.getClaim(USERNAME_PRIVATE_CLAIM).asString();
 
             return token; //username from JWT
 
@@ -172,32 +155,8 @@ public class Token_Provider extends JWT {
         }
     }
 
-    public String getPrivateKey(){
-        return TOKEN_PRIVATE_KEY;
-    }
-
-    public String getTOKEN_HEADER(){
-        return TOKEN_HEADER;
-    }
-
-    public String getTOKEN_PREFIX(){
-        return TOKEN_PREFIX;
-    }
-
-    public String getISSUER(){
-        return ISSUER;
-    }
-
-    public String getUSERNAME_PRIVATE_CLAIM(){
-        return USERNAME_PRIVATE_CLAIM;
-    }
-
-    public String getROLES_PRIVATE_CLAIM(){
-        return ROLES_PRIVATE_CLAIM;
-    }
-
-    public Algorithm getAlgorithm(){
-        return Algorithm.HMAC256(getPrivateKey());
+    private Algorithm getAlgorithm(){
+        return Algorithm.HMAC256(TOKEN_PRIVATE_KEY);
     }
 
 }
