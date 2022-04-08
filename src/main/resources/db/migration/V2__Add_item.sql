@@ -40,6 +40,10 @@ CREATE TABLE IF NOT EXISTS item
     "lastModificationTime" timestamp,
     sku                    varchar(64),
     name                   varchar(128),
+    imagePath              varchar(128),
+    volume                 varchar(32),
+    dimensions             varchar(32),
+    weight                 varchar(32),
     "isDeleted"            boolean,
     "description"          text
 );

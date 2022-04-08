@@ -3,6 +3,7 @@ package com.ebiggerr.sims.config.jwt;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ebiggerr.sims.exception.CustomException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -18,9 +19,16 @@ import java.io.IOException;
 @Component
 public class JWTAuthentication_Filter extends OncePerRequestFilter {
 
-    private final String HEADER_STRING="Authorization";
-    private final String TOKEN_PREFIX="Bearer";
-    private final String USERNAME_PRIVATE_CLAIM="username";
+    @Value("${jwt.token.header}")
+    private String HEADER_STRING;
+
+    @Value("${jwt.token.prefix}")
+    private String TOKEN_PREFIX;
+
+    @Value("${jwt.claim.username}")
+    private String USERNAME_PRIVATE_CLAIM;
+
+    private final Token_Provider tokenProvider = new Token_Provider();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -36,7 +44,7 @@ public class JWTAuthentication_Filter extends OncePerRequestFilter {
             authToken = header.replace(TOKEN_PREFIX,"").trim(); //extract the token String by eliminate the "Bearer"
 
             try{
-                decodedJWT = Token_Provider.verifyAndDecodeToken(authToken);
+                decodedJWT = tokenProvider.verifyAndDecodeToken(authToken);
                 username = decodedJWT.getClaim(USERNAME_PRIVATE_CLAIM).asString();
 
             }catch ( CustomException | JWTVerificationException exception ){
@@ -49,7 +57,7 @@ public class JWTAuthentication_Filter extends OncePerRequestFilter {
             try {
                 //extract username and authorities from the decoded JWT
                 UsernamePasswordAuthenticationToken authenticationToken =
-                        Token_Provider.getAuthenticationToken(decodedJWT, null, username);
+                        tokenProvider.getAuthenticationToken(decodedJWT, null, username);
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 //update

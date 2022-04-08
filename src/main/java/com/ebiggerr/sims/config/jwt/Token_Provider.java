@@ -10,6 +10,7 @@ import com.ebiggerr.sims.domain.account.Account;
 import com.ebiggerr.sims.exception.CustomException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,14 +29,23 @@ public class Token_Provider extends JWT {
 
     private static final Logger logger = LoggerFactory.getLogger(Token_Provider.class);
 
-    private final static String privateKey = "jXn2r5u8x!A%D*G-KaPdSgVkYp3s6v9y";
-    private final static Algorithm algorithm = Algorithm.HMAC256(privateKey);
+    @Value("${jwt.token.secret}")
+    private String TOKEN_PRIVATE_KEY;
 
-    private static final String HEADER_STRING="Authorization";
-    private static final String TOKEN_PREFIX="Bearer";
-    private static final String ISSUER="auth0"; //JWT issuer
-    private static final String USERNAME_PRIVATE_CLAIM="username";
-    private static final String ROLES_PRIVATE_CLAIM = "roles";
+    @Value("${jwt.token.prefix}")
+    private String TOKEN_PREFIX;
+
+    @Value("${jwt.token.header}")
+    private String TOKEN_HEADER;
+
+    @Value("${jwt.token.issuer}")
+    private String ISSUER;
+
+    @Value("${jwt.claim.username}")
+    private String USERNAME_PRIVATE_CLAIM;
+
+    @Value("${jwt.claim.roles}")
+    private String ROLES_PRIVATE_CLAIM;
 
     /**
      *
@@ -45,7 +55,7 @@ public class Token_Provider extends JWT {
      * Claims: Issuer, IssuedAt, ExpiredAt, Username, Roles
      *
      */
-    public static String generateTokenFromAuthentication(Authentication authentication) throws CustomException {
+    public String generateTokenFromAuthentication(Authentication authentication) throws CustomException {
 
         final String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
 
@@ -72,7 +82,7 @@ public class Token_Provider extends JWT {
                         .withIssuedAt(now)
                         .withExpiresAt(exp)
                         .withIssuer(ISSUER)
-                        .sign(algorithm);
+                        .sign(getAlgorithm());
             }
             else{
                 throw new JWTCreationException("Null Username", new Throwable("Null Username") );
@@ -90,10 +100,10 @@ public class Token_Provider extends JWT {
      * @param token JSON Web Token
      * @return DecodedJWT from the JSON Web Token
      */
-    public static DecodedJWT verifyAndDecodeToken(String token) throws CustomException {
+    public DecodedJWT verifyAndDecodeToken(String token) throws CustomException {
 
         try{
-            JWTVerifier verifier = JWT.require(algorithm).withIssuer(ISSUER).build();
+            JWTVerifier verifier = JWT.require(getAlgorithm()).withIssuer(ISSUER).build();
             return verifier.verify(token);
 
         }catch (JWTVerificationException exception){
@@ -109,7 +119,7 @@ public class Token_Provider extends JWT {
      * @param username username extract from the JWT
      * @return UsernamePasswordAuthenticationToken to be used by SecurityContextHolder.getContext.setAuthentication(), @PreAuthorize on controllers
      */
-    public static UsernamePasswordAuthenticationToken getAuthenticationToken (DecodedJWT decodedJWT, final Authentication existingAuth, String username) throws CustomException {
+    public UsernamePasswordAuthenticationToken getAuthenticationToken (DecodedJWT decodedJWT, final Authentication existingAuth, String username) throws CustomException {
 
         if( decodedJWT != null && username != null ) {
 
@@ -128,12 +138,12 @@ public class Token_Provider extends JWT {
      * @param token JSON Web Token
      * @return Extracted username from the JWT
      */
-    public static String getUsernameFromToken(String token) throws CustomException {
+    public String getUsernameFromToken(String token) throws CustomException {
 
         try {
             token = token.replace(TOKEN_PREFIX, "").trim();
 
-            DecodedJWT decodedJWT = JWT.require(algorithm).build().verify(token);
+            DecodedJWT decodedJWT = JWT.require(getAlgorithm()).build().verify(token);
 
             token = decodedJWT.getClaim(USERNAME_PRIVATE_CLAIM).asString();
 
@@ -143,6 +153,10 @@ public class Token_Provider extends JWT {
             logger.error("Failed to get the username from token.");
             throw new CustomException("Failed to verify the token and get the username claim from the token");
         }
+    }
+
+    private Algorithm getAlgorithm(){
+        return Algorithm.HMAC256(TOKEN_PRIVATE_KEY);
     }
 
 }

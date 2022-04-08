@@ -3,6 +3,7 @@ package com.ebiggerr.sims.config.jwt;
 import com.ebiggerr.sims.service.account.AccountService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ScopeMetadataResolver;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -14,11 +15,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity( prePostEnabled = true )
-public class WebSecurity_Config extends WebSecurityConfigurerAdapter {
+public class WebSecurity_Config extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     private final AccountService accountService;
 
@@ -39,7 +42,7 @@ public class WebSecurity_Config extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/authenticate", "/register","/actuator/**").permitAll()
+                .antMatchers("/user/authenticate", "/user/register","/actuator/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint).and()
@@ -64,10 +67,10 @@ public class WebSecurity_Config extends WebSecurityConfigurerAdapter {
         return new JWTAuthentication_Filter();
     }
 
-    /*@Bean
-    public CORS_Filter corsFilter() throws Exception{
-        return new CORS_Filter();
-    }*/
+    @Override
+    public void addCorsMappings(CorsRegistry registry){
+        registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+    }
 
     @Bean
     public AuthenticationProvider daoAuthenticationProvider(){

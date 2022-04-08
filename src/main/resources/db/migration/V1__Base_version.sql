@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS public.account (
     "lastName" character varying(64),
     "emailAddress" character varying(128),
     "accountStatus" public.accountstatus DEFAULT 'PENDING'::public.accountstatus,
+    "lastLoginTime" timestamp without time zone,
     remarks text
 );
 
@@ -45,7 +46,7 @@ ALTER TABLE IF EXISTS ONLY public.account
 --
 
 ALTER TABLE IF EXISTS ONLY public."accountRole"
-    ADD CONSTRAINT accountrole_pk PRIMARY KEY ("accountId", "roleId");
+    ADD CONSTRAINT accountrole_pk PRIMARY KEY ("accountId", "roleId","creationTime");
 
 --
 -- Name: roleDetails roledetails_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
@@ -59,6 +60,8 @@ ALTER TABLE IF EXISTS ONLY public."roleDetails"
 --
 
 CREATE UNIQUE INDEX roledetails_roleid_uindex ON public."roleDetails" USING btree ("roleId");
+
+CREATE UNIQUE INDEX roledetails_roleName_uindex ON public."roleDetails" USING btree ("roleName");
 
 
 --
